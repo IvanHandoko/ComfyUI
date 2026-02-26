@@ -2057,6 +2057,122 @@ class TestCurveWidget:
         return {"ui": {"text": [result]}, "result": (result,)}
 
 
+class TestRangePlain:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "range": ("RANGE", {"default": {"min": 0.0, "max": 1.0}}),
+                "range_midpoint": ("RANGE", {
+                    "default": {"min": 0.2, "max": 0.8, "midpoint": 0.5},
+                    "show_midpoint": True,
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "execute"
+    OUTPUT_NODE = True
+    CATEGORY = "testing"
+
+    def execute(self, **kwargs):
+        import json
+        result = json.dumps(kwargs, indent=2)
+        return {"ui": {"text": [result]}, "result": (result,)}
+
+
+class TestRangeGradient:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "range": ("RANGE", {
+                    "default": {"min": 0.0, "max": 1.0},
+                    "display": "gradient",
+                    "gradient_stops": [
+                        {"offset": 0.0, "color": [0, 0, 0]},
+                        {"offset": 1.0, "color": [255, 255, 255]}
+                    ],
+                }),
+                "range_midpoint": ("RANGE", {
+                    "default": {"min": 0.0, "max": 1.0, "midpoint": 0.5},
+                    "display": "gradient",
+                    "gradient_stops": [
+                        {"offset": 0.0, "color": [0, 0, 0]},
+                        {"offset": 1.0, "color": [255, 255, 255]}
+                    ],
+                    "show_midpoint": True,
+                    "midpoint_scale": "gamma",
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "execute"
+    OUTPUT_NODE = True
+    CATEGORY = "testing"
+
+    def execute(self, **kwargs):
+        import json
+        result = json.dumps(kwargs, indent=2)
+        return {"ui": {"text": [result]}, "result": (result,)}
+
+
+class TestRangeHistogram:
+    RANGE_OPTS = {
+        "display": "histogram",
+        "show_midpoint": True,
+        "midpoint_scale": "gamma",
+        "value_min": 0,
+        "value_max": 255,
+    }
+
+    @classmethod
+    def INPUT_TYPES(s):
+        default = {"min": 0, "max": 255, "midpoint": 0.5}
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "rgb":   ("RANGE", {"default": {**default}, **s.RANGE_OPTS}),
+                "red":   ("RANGE", {"default": {**default}, **s.RANGE_OPTS}),
+                "green": ("RANGE", {"default": {**default}, **s.RANGE_OPTS}),
+                "blue":  ("RANGE", {"default": {**default}, **s.RANGE_OPTS}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "execute"
+    OUTPUT_NODE = True
+    CATEGORY = "testing"
+
+    def execute(self, image, rgb, red, green, blue):
+        import json
+        import numpy as np
+
+        img = image[0].cpu().numpy()  # (H, W, C)
+
+        # Per-channel histograms
+        hist_r, _ = np.histogram(img[:, :, 0].flatten(), bins=256, range=(0.0, 1.0))
+        hist_g, _ = np.histogram(img[:, :, 1].flatten(), bins=256, range=(0.0, 1.0))
+        hist_b, _ = np.histogram(img[:, :, 2].flatten(), bins=256, range=(0.0, 1.0))
+
+        # Luminance histogram (BT.709)
+        luminance = 0.2126 * img[:, :, 0] + 0.7152 * img[:, :, 1] + 0.0722 * img[:, :, 2]
+        hist_rgb, _ = np.histogram(luminance.flatten(), bins=256, range=(0.0, 1.0))
+
+        result = json.dumps({"rgb": rgb, "red": red, "green": green, "blue": blue}, indent=2)
+        return {
+            "ui": {
+                "text": [result],
+                "range_histogram_rgb":   hist_rgb.astype(np.uint32).tolist(),
+                "range_histogram_red":   hist_r.astype(np.uint32).tolist(),
+                "range_histogram_green": hist_g.astype(np.uint32).tolist(),
+                "range_histogram_blue":  hist_b.astype(np.uint32).tolist(),
+            },
+            "result": (result,)
+        }
+
+
 NODE_CLASS_MAPPINGS = {
     "KSampler": KSampler,
     "CheckpointLoaderSimple": CheckpointLoaderSimple,
@@ -2126,6 +2242,9 @@ NODE_CLASS_MAPPINGS = {
     "ConditioningSetTimestepRange": ConditioningSetTimestepRange,
     "LoraLoaderModelOnly": LoraLoaderModelOnly,
     "TestCurveWidget": TestCurveWidget,
+    "TestRangePlain": TestRangePlain,
+    "TestRangeGradient": TestRangeGradient,
+    "TestRangeHistogram": TestRangeHistogram,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -2195,6 +2314,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VAEDecodeTiled": "VAE Decode (Tiled)",
     "VAEEncodeTiled": "VAE Encode (Tiled)",
     "TestCurveWidget": "Test Curve Widget",
+    "TestRangePlain": "Test Range (Plain)",
+    "TestRangeGradient": "Test Range (Gradient)",
+    "TestRangeHistogram": "Test Range (Histogram)",
 }
 
 EXTENSION_WEB_DIRS = {}

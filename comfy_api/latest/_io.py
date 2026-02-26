@@ -1252,6 +1252,41 @@ class Curve(ComfyTypeIO):
             return super().as_dict()
 
 
+@comfytype(io_type="RANGE")
+class Range(ComfyTypeIO):
+    Type = dict  # {"min": float, "max": float, "midpoint"?: float}
+
+    class Input(WidgetInput):
+        def __init__(self, id: str, display_name: str=None, optional=False, tooltip: str=None,
+                     socketless: bool=True, default: dict=None,
+                     display: str=None,
+                     gradient_stops: list=None,
+                     show_midpoint: bool=None,
+                     midpoint_scale: str=None,
+                     value_min: float=None,
+                     value_max: float=None,
+                     advanced: bool=None):
+            super().__init__(id, display_name, optional, tooltip, None, default, socketless, None, None, None, None, advanced)
+            if default is None:
+                self.default = {"min": 0.0, "max": 1.0}
+            self.display = display
+            self.gradient_stops = gradient_stops
+            self.show_midpoint = show_midpoint
+            self.midpoint_scale = midpoint_scale
+            self.value_min = value_min
+            self.value_max = value_max
+
+        def as_dict(self):
+            return super().as_dict() | prune_dict({
+                "display": self.display,
+                "gradient_stops": self.gradient_stops,
+                "show_midpoint": self.show_midpoint,
+                "midpoint_scale": self.midpoint_scale,
+                "value_min": self.value_min,
+                "value_max": self.value_max,
+            })
+
+
 @comfytype(io_type="COLOR_CURVES")
 class ColorCurves(ComfyTypeIO):
     class ColorCurvesDict(TypedDict):
