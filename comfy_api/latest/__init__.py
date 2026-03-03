@@ -118,12 +118,12 @@ class Caching:
         from comfy_api.latest import Caching
 
         class MyRedisProvider(Caching.CacheProvider):
-            def on_lookup(self, context):
+            async def on_lookup(self, context):
                 # Check Redis for cached result
                 ...
 
-            def on_store(self, context, value):
-                # Store to Redis (can be async internally)
+            async def on_store(self, context, value):
+                # Store to Redis
                 ...
 
         Caching.register_provider(MyRedisProvider())
@@ -135,10 +135,6 @@ class Caching:
         CacheValue,
         register_cache_provider as register_provider,
         unregister_cache_provider as unregister_provider,
-        get_cache_providers as get_providers,
-        has_cache_providers as has_providers,
-        clear_cache_providers as clear_providers,
-        estimate_value_size,
     )
 
 

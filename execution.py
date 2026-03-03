@@ -414,7 +414,7 @@ async def execute(server, dynprompt, caches, current_item, extra_data, executed,
     inputs = dynprompt.get_node(unique_id)['inputs']
     class_type = dynprompt.get_node(unique_id)['class_type']
     class_def = nodes.NODE_CLASS_MAPPINGS[class_type]
-    cached = caches.outputs.get(unique_id)
+    cached = await caches.outputs.get(unique_id)
     if cached is not None:
         if server.client_id is not None:
             cached_ui = cached.ui or {}
@@ -470,10 +470,10 @@ async def execute(server, dynprompt, caches, current_item, extra_data, executed,
                 server.last_node_id = display_node_id
                 server.send_sync("executing", { "node": unique_id, "display_node": display_node_id, "prompt_id": prompt_id }, server.client_id)
 
-            obj = caches.objects.get(unique_id)
+            obj = await caches.objects.get(unique_id)
             if obj is None:
                 obj = class_def()
-                caches.objects.set(unique_id, obj)
+                await caches.objects.set(unique_id, obj)
 
             if issubclass(class_def, _ComfyNodeInternal):
                 lazy_status_present = first_real_override(class_def, "check_lazy_status") is not None
@@ -575,7 +575,7 @@ async def execute(server, dynprompt, caches, current_item, extra_data, executed,
 
         cache_entry = CacheEntry(ui=ui_outputs.get(unique_id), outputs=output_data)
         execution_list.cache_update(unique_id, cache_entry)
-        caches.outputs.set(unique_id, cache_entry)
+        await caches.outputs.set(unique_id, cache_entry)
 
     except comfy.model_management.InterruptProcessingException as iex:
         logging.info("Processing interrupted")
@@ -720,7 +720,7 @@ class PromptExecutor:
 
                 cached_nodes = []
                 for node_id in prompt:
-                    if self.caches.outputs.get(node_id) is not None:
+                    if await self.caches.outputs.get(node_id) is not None:
                         cached_nodes.append(node_id)
 
                 comfy.model_management.cleanup_models_gc()
