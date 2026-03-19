@@ -15,6 +15,7 @@ from comfy_execution.progress import get_progress_state, PreviewImageTuple
 from PIL import Image
 from comfy.cli_args import args
 import numpy as np
+import os
 
 
 class ComfyAPI_latest(ComfyAPIBase):
@@ -25,6 +26,7 @@ class ComfyAPI_latest(ComfyAPIBase):
         super().__init__()
         self.node_replacement = self.NodeReplacement()
         self.execution = self.Execution()
+        self.environment = self.Environment()
         self.caching = self.Caching()
 
     class NodeReplacement(ProxiedSingleton):
@@ -84,6 +86,27 @@ class ComfyAPI_latest(ComfyAPIBase):
                 max_value=max_value,
                 image=to_display,
             )
+
+    class Environment(ProxiedSingleton):
+        """
+        Query the current execution environment.
+
+        Managed deployments set the ``COMFY_EXECUTION_ENVIRONMENT`` env var
+        so custom nodes can adapt their behaviour at runtime.
+
+        Example::
+
+            from comfy_api.latest import api
+
+            env = api.environment.get()  # "local" | "cloud" | "remote"
+        """
+
+        _VALID = {"local", "cloud", "remote"}
+
+        async def get(self) -> str:
+            """Return the execution environment: ``"local"``, ``"cloud"``, or ``"remote"``."""
+            value = os.environ.get("COMFY_EXECUTION_ENVIRONMENT", "local").lower().strip()
+            return value if value in self._VALID else "local"
 
     class Caching(ProxiedSingleton):
         """
