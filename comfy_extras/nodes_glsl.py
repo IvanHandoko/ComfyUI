@@ -21,7 +21,7 @@ def _preload_angle():
     gles_path = comfy_angle.get_glesv2_path()
 
     if sys.platform == "win32":
-        angle_dir = os.comfy_angle.get_lib_dir()
+        angle_dir = comfy_angle.get_lib_dir()
         os.add_dll_directory(angle_dir)
         os.environ["PATH"] = angle_dir + os.pathsep + os.environ.get("PATH", "")
 
