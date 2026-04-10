@@ -2,7 +2,6 @@
 precision highp float;
 
 uniform sampler2D u_image0;
-uniform vec2 u_resolution;
 uniform float u_float0;  // strength [0.0 – 2.0] typical: 0.3–1.0
 
 in vec2 v_texCoord;

@@ -2,7 +2,6 @@
 precision highp float;
 
 uniform sampler2D u_image0;
-uniform vec2 u_resolution;
 uniform float u_float0;  // amount    [0.0 - 3.0]  typical: 0.5-1.5
 uniform float u_float1;  // radius    [0.5 - 10.0] blur radius in pixels
 uniform float u_float2;  // threshold [0.0 - 0.1]  min difference to sharpen
